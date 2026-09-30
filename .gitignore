@@ -1,0 +1,5 @@
+# Nooit echte configuratie met tokens of wachtwoorden uploaden
+pve.yml
+*.env
+*.key
+*.pem

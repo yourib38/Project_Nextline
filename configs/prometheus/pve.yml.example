@@ -1,0 +1,8 @@
+# Voorbeeld van /etc/prometheus/pve.yml
+# Vervang PLAK-HIER-JE-TOKEN door de echte token-waarde.
+# Zet het echte bestand NOOIT in GitHub.
+default:
+  user: prometheus@pve
+  token_name: monitoring
+  token_value: PLAK-HIER-JE-TOKEN
+  verify_ssl: false

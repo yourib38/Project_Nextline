@@ -9,7 +9,7 @@ Documentatie van ons schoolproject Nextline. Alles wat we bouwen en instellen, l
 | [Cluster1 – overzicht](docs/cluster1/overzicht.md) | Nodes, IP-adressen, hardware en netwerk | Klaar |
 | [Cluster1 – Ceph-storage](docs/cluster1/ceph.md) | Gedeelde opslag voor VM's, containers en ISO's | Klaar |
 | [Cluster1 – Monitoring](docs/cluster1/monitoring.md) | Prometheus + Grafana in `Ubuntu-server` | Klaar |
-| Cluster1 – High Availability (HA) | HA-groepen, load balancing en live migration | Nog te doen |
+| Cluster1 – High Availability (HA) | HA-groepen, load balancing en live migration | Klaar |
 
 ## Mappenstructuur
 

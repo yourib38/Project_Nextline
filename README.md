@@ -10,6 +10,7 @@ Documentatie van ons schoolproject Nextline. Alles wat we bouwen en instellen, l
 | [Cluster1 – Ceph-storage](docs/cluster1/ceph.md) | Gedeelde opslag voor VM's, containers en ISO's | Klaar |
 | [Cluster1 – Monitoring](docs/cluster1/monitoring.md) | Prometheus + Grafana in `Ubuntu-server` | Klaar |
 | Cluster1 – High Availability (HA) | HA-groepen, load balancing en live migration | Klaar |
+| [Cluster1 – Back-up](docs/cluster1/backup.md) | Back-ups naar de Proxmox Backup Server van de docent | Klaar |
 
 ## Mappenstructuur
 
@@ -22,6 +23,7 @@ Project_Nextline/
 │       ├── overzicht.md
 │       ├── ceph.md
 │       ├── monitoring.md
+│       ├── backup.md
 │       └── afbeeldingen/
 └── configs/               ← kopieën van configuratiebestanden (zonder wachtwoorden)
     ├── prometheus/

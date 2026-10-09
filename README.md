@@ -11,6 +11,7 @@ Documentatie van ons schoolproject Nextline. Alles wat we bouwen en instellen, l
 | [Cluster1 – Monitoring](docs/cluster1/monitoring.md) | Prometheus + Grafana in `Ubuntu-server` | Klaar |
 | Cluster1 – High Availability (HA) | HA-groepen, load balancing en live migration | Klaar |
 | [Cluster1 – Back-up](docs/cluster1/backup.md) | Back-ups naar de Proxmox Backup Server van de docent | Klaar |
+| [BDRP – herstelplan](docs/bdrp/README.md) | Wat de beheerder doet bij uitval, wat er is gebouwd en wat er is gedaan | Versie 0.1 |
 
 ## Mappenstructuur
 
@@ -19,6 +20,9 @@ Project_Nextline/
 ├── README.md              ← dit bestand, de inhoudsopgave
 ├── docs/
 │   ├── _sjabloon.md       ← sjabloon voor nieuwe documentatie
+│   ├── bdrp/              ← herstelplan (BDRP) voor de beheerder
+│   │   ├── README.md
+│   │   └── BDRP_BreachOut_Cluster1.docx
 │   └── cluster1/          ← alles over het Proxmox-cluster
 │       ├── overzicht.md
 │       ├── ceph.md

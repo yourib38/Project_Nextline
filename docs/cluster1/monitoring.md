@@ -1,4 +1,4 @@
-# Monitoring: Prometheus + Grafana
+# Monitoring en load balancing
 
 [← Terug naar README](../../README.md) · [Cluster1 – overzicht](overzicht.md)
 
@@ -6,7 +6,7 @@
 
 | Onderdeel | Waarde |
 | --- | --- |
-| Container | `Ubuntu-server` op pve001 |
+| Container | `MON-01` (CT 100), staat in HA met de schijf op `ceph-vm` |
 | IP-adres container | `192.168.10.20` |
 | Grafana | `http://192.168.10.20:3000` |
 | Prometheus | `http://192.168.10.20:9090` |
@@ -18,6 +18,7 @@
 | Meldingen | Grafana Alerting, per e-mail naar `youri.bochoven@student.graafschapcollege.nl` |
 | Afzender meldingen | `nextline.monitoring@gmail.com` (het app-wachtwoord staat **niet** in deze repo) |
 | Ophaalinterval | 15 seconden |
+| Load balancing | Proxmox CRS in de modus *Dynamic Load*, met automatisch verdelen (zie stap 11) |
 
 ## Hoe het werkt
 
@@ -39,6 +40,17 @@ flowchart LR
 | Grafana Alerting | Controleert elke minuut de alert-regels en stuurt een e-mail bij een probleem. |
 
 Per node en per container zie je: status, CPU, geheugen, schijf, netwerk en uptime. Ook de HA-status en de storage (waaronder `ceph-vm`) zijn zichtbaar.
+
+### Samenwerking met load balancing (FR3)
+
+Proxmox verdeelt de containers zelf over de nodes met de Cluster Resource Scheduler (CRS). Monitoring en load balancing vullen elkaar aan:
+
+| Onderdeel | Taak |
+| --- | --- |
+| CRS (Proxmox) | Verplaatst HA-containers automatisch als de nodes onderling te ongelijk belast zijn. |
+| Grafana Alerting | Stuurt een e-mail als een node boven 80% blijft, bijvoorbeeld als alle nodes druk zijn en verdelen niet meer helpt. |
+
+De CRS kijkt naar het verschil in belasting tussen de nodes (drempel 30%), niet naar een vast percentage per node. De 80%-grens uit FR3 zit in de Grafana-meldingen. Bij de CRS weegt geheugen zwaarder dan CPU.
 
 ## Bestanden in de container
 
@@ -70,7 +82,7 @@ pveum user token add prometheus@pve monitoring --privsep 0
 
 ### Stap 2: Prometheus installeren
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 ```
 apt update
@@ -79,7 +91,7 @@ apt install -y prometheus python3-venv curl wget gnupg
 
 ### Stap 3: Grafana installeren
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 ```
 mkdir -p /etc/apt/keyrings
@@ -93,7 +105,7 @@ systemctl enable --now grafana-server
 
 ### Stap 4: PVE exporter installeren
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 1. Installeer de exporter:
 
@@ -130,7 +142,7 @@ curl -s "http://127.0.0.1:9221/pve?target=192.168.10.11&cluster=1&node=1" | grep
 
 ### Stap 5: Prometheus configureren
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 1. Zet de inhoud van [prometheus.yml](../../configs/prometheus/prometheus.yml) in `/etc/prometheus/prometheus.yml`.
 2. Controleer de configuratie. Er hoort **SUCCESS** te staan:
@@ -169,7 +181,7 @@ ceph mgr module enable prometheus
 ceph mgr services
 ```
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 2. Open `/etc/prometheus/prometheus.yml` en zet dit blok onderaan, met dezelfde inspringing als `- job_name: 'pve'`:
 
@@ -199,7 +211,7 @@ Waar: **browser**, ingelogd op `nextline.monitoring@gmail.com`
 2. Klik op **Tweestapsverificatie** en zet het aan.
 3. Maak via `https://myaccount.google.com/apppasswords` een app-wachtwoord met de naam `Grafana`.
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 4. Open het bestand:
 
@@ -291,11 +303,51 @@ max(ceph_health_status)
 
 De drempels komen uit het TO (tabel 5 en 16). Door de korte wachttijd komen kritieke meldingen binnen 5 minuten binnen (NFR5). Het dashboard *Cluster1 – Overzicht* gebruikt dezelfde drempels: CPU en geheugen oranje vanaf 80% en rood vanaf 90%, Ceph oranje vanaf 70% en rood vanaf 80%.
 
+### Stap 11: load balancing aanzetten (FR3)
+
+Waar: **pve001 > Shell**
+
+1. Controleer of de containers in HA staan en hun schijf op `ceph-vm` hebben. Een container op `local-lvm` kan niet verhuizen.
+
+```
+ha-manager status
+grep -E "^(rootfs|mp[0-9]+):" /etc/pve/nodes/*/lxc/*.conf
+```
+
+2. Zet een container die nog niet in HA staat erbij. Vervang `<ID>`:
+
+```
+ha-manager add ct:<ID> --state started
+```
+
+3. Zet de load balancer aan:
+
+```
+pvesh set /cluster/options --crs "ha=dynamic,ha-rebalance-on-start=1,ha-auto-rebalance=1,ha-auto-rebalance-hold-duration=6"
+```
+
+4. Controleer de instelling. In de regel horen `ha=dynamic`, `ha-rebalance-on-start=1`, `ha-auto-rebalance=1` en `ha-auto-rebalance-hold-duration=6` te staan:
+
+```
+grep crs /etc/pve/datacenter.cfg
+```
+
+De instelling is ook te zien in **Datacenter > Options > Cluster Resource Scheduling**.
+
+| Instelling | Waarde | Betekenis |
+| --- | --- | --- |
+| Scheduling Mode | Dynamic Load | Kijkt naar het echte CPU- en geheugengebruik van nodes en containers. |
+| Rebalance on Start | aan | Een container die start, gaat naar de node met de meeste ruimte. |
+| Automatic Rebalance | aan | Verplaatst containers als de nodes te ongelijk belast zijn. |
+| Imbalance Threshold | 30% (standaard) | Pas boven dit verschil tussen de nodes grijpt de load balancer in. |
+| Hold Duration | 6 rondes (ongeveer 1 minuut) | Zo lang moet het verschil aanhouden. Een korte piek leidt niet tot een verhuizing. |
+| Minimum imbalance improvement | 10% (standaard) | Een verhuizing moet het verschil minstens zoveel verkleinen. |
+
 ---
 
 ## Beheer
 
-Waar: **Ubuntu-server > Console**
+Waar: **MON-01 > Console**
 
 Status van de diensten:
 
@@ -343,6 +395,77 @@ Meldingen testen (T-06):
 3. Zet in Grafana bij **KRITIEK – CPU node** de drempel tijdelijk op `0.01`. Binnen 5 minuten komt een mail. Zet de drempel daarna terug op `0.9`.
 4. Bewaar als bewijs het tijdstip en een screenshot van de mail.
 
+### Load balancing
+
+Waar: **pve001 > Shell**
+
+Status van HA en op welke node elke container draait:
+
+```
+ha-manager status
+```
+
+Verhuizingen door de load balancer terugzien. Voer dit uit op de node die bij `ha-manager status` als **master** staat:
+
+```
+journalctl -u pve-ha-crm --since "1 hour ago" | grep "auto rebalance"
+```
+
+Een container uitsluiten van automatisch verdelen, bijvoorbeeld een challenge-container tijdens een sessie. Vervang `<ID>`. Met `1` in plaats van `0` doet hij weer mee:
+
+```
+ha-manager set ct:<ID> --auto-rebalance 0
+```
+
+Load balancing testen (T-02):
+
+1. Maak op pve002 twee testcontainers (CT 901 en 902) op `ceph-vm`, elk met de helft van het aantal CPU's van pve002 en 512 MB geheugen. Ze hebben geen netwerk nodig.
+2. Zet in beide containers (waar: **901 > Console** en **902 > Console**) een service die alle CPU's belast:
+
+```
+cat > /root/belasting.sh << 'EOF'
+#!/bin/sh
+for i in $(seq 1 $(nproc)); do
+  yes > /dev/null &
+done
+wait
+EOF
+chmod +x /root/belasting.sh
+cat > /etc/systemd/system/belasting.service << 'EOF'
+[Unit]
+Description=Belastingstest load balancing
+
+[Service]
+ExecStart=/root/belasting.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable belasting
+```
+
+3. Voeg ze toe aan HA zonder automatisch verdelen en start de belasting (waar: **pve002 > Shell**):
+
+```
+ha-manager add ct:901 --state started --auto-rebalance 0
+ha-manager add ct:902 --state started --auto-rebalance 0
+pct exec 901 -- systemctl start belasting
+pct exec 902 -- systemctl start belasting
+```
+
+4. Test A, melding: pve002 kleurt in Grafana rood. Binnen een paar minuten komt de mail *KRITIEK – CPU node* binnen, na 10 minuten ook *Waarschuwing – CPU node*.
+5. Test B, verdelen: zet automatisch verdelen aan. Binnen een paar minuten verhuist een van de twee testcontainers naar een andere node en zakt pve002 naar ongeveer 50%. Geen node blijft boven 90%.
+
+```
+ha-manager set ct:901 --auto-rebalance 1
+ha-manager set ct:902 --auto-rebalance 1
+```
+
+6. Test C, nieuwe container: maak CT 903 op de node met het hoogste geheugengebruik en voer `ha-manager add ct:903 --state started` uit. De container start op een andere node.
+7. Bewaar als bewijs: screenshots van `ha-manager status`, de grafiek *CPU per node* (ook als CSV via **Inspect > Data**), de mails en de regel met **auto rebalance** uit `journalctl`.
+8. Ruim op: zet 901, 902 en 903 uit en verwijder ze via **More > Remove** met **Purge from job configurations** aangevinkt.
+
 ## Problemen oplossen
 
 | Probleem | Oplossing |
@@ -355,6 +478,8 @@ Meldingen testen (T-06):
 | Targets bij **ceph** staan op DOWN | Controleer op pve001 met `ceph mgr services` of de prometheus-module aanstaat. |
 | `/targets` toont een pagina over het Debian-pakket | Klik op **Use classic web UI** en ga naar **Status > Targets**. |
 | *Waarschuwing – Ceph-health* blijft terugkomen | Bekijk op pve001 met `ceph health detail` wat de oorzaak is. |
+| De load balancer verplaatst niets | Controleer met `grep crs /etc/pve/datacenter.cfg` de instelling en met `ha-manager status` of de container in HA staat. Alleen CPU-belasting haalt de drempel van 30% soms niet, omdat geheugen zwaarder weegt. Zet voor een test de drempel tijdelijk lager door `,ha-auto-rebalance-threshold=10` achter het `pvesh`-commando van stap 11 te zetten. Voer na de test stap 11 opnieuw uit. |
+| Een container start niet na een verhuizing | Controleer of de schijf op `ceph-vm` staat en of de bridge en VLAN van de container op alle drie de nodes bestaan. |
 
 ## Later uitbreiden (optioneel)
 
@@ -364,6 +489,10 @@ Meldingen testen (T-06):
 
 - **Zet het echte token nooit in GitHub.** Alleen `pve.yml.example` hoort in deze repo.
 - Maak Grafana en Prometheus nooit bereikbaar vanaf internet.
-- Zet de schijf van `Ubuntu-server` op `ceph-vm` en voeg de container toe aan HA. Anders valt de monitoring weg als pve001 uitvalt.
+- `MON-01` staat in HA met de schijf op `ceph-vm`. Valt de node uit waarop hij draait, dan start HA de monitoring op een andere node.
 - **Zet het app-wachtwoord van Gmail nooit in GitHub.** Het staat alleen in `/etc/default/grafana-server` in de container.
 - Na het opstarten van het cluster staat Ceph een paar minuten op HEALTH_WARN. Daarom wacht de regel *Waarschuwing – Ceph-health* 10 minuten.
+- Containers kunnen niet live verhuizen. Elke verhuizing door de load balancer is een korte herstart van de container, ook van `MON-01`.
+- De load balancer verplaatst alleen containers die in HA staan. Containers buiten HA tellen wel mee als belasting.
+- 203 (cc3-test), 210 (docker01) en 211 (web01) staan op `local-lvm` en niet in HA. Ze zijn met Terraform gemaakt en doen pas mee als de Terraform-code hun opslag op `ceph-vm` zet.
+- Een verhuisde container houdt zijn IP-adres. Dat werkt alleen als de bridge en VLAN die hij gebruikt op alle drie de nodes hetzelfde zijn ingesteld.

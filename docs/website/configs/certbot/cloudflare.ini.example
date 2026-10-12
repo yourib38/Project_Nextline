@@ -1,0 +1,4 @@
+# Voorbeeld van /root/.secrets/cloudflare.ini op container 102 (WEB-01)
+# Vervang de placeholder door het echte Cloudflare API-token (rechten: Edit zone DNS voor ms-dev.nl).
+# Zet het echte bestand nooit in GitHub. Rechten op WEB-01: chmod 600
+dns_cloudflare_api_token = PLAK-HIER-JE-TOKEN

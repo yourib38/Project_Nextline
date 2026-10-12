@@ -12,6 +12,7 @@ Documentatie van ons schoolproject Nextline. Alles wat we bouwen en instellen, l
 | Cluster1 – High Availability (HA) | HA-groepen, load balancing en live migration | Klaar |
 | [Cluster1 – Back-up](docs/cluster1/backup.md) | Back-ups naar de Proxmox Backup Server van de docent | Klaar |
 | [BDRP – herstelplan](docs/bdrp/README.md) | Wat de beheerder doet bij uitval, wat er is gebouwd en wat er is gedaan | Versie 0.1 |
+| [Website](docs/website/README.md) | BreachOut-website: HTTPS, deelnemersnetwerk, admin panel en configs | Klaar |
 
 ## Mappenstructuur
 
@@ -23,12 +24,18 @@ Project_Nextline/
 │   ├── bdrp/              ← herstelplan (BDRP) voor de beheerder
 │   │   ├── README.md
 │   │   └── BDRP_BreachOut_Cluster1.docx
-│   └── cluster1/          ← alles over het Proxmox-cluster
-│       ├── overzicht.md
-│       ├── ceph.md
-│       ├── monitoring.md
-│       ├── backup.md
-│       └── afbeeldingen/
+│   ├── cluster1/          ← alles over het Proxmox-cluster
+│   │   ├── overzicht.md
+│   │   ├── ceph.md
+│   │   ├── monitoring.md
+│   │   ├── backup.md
+│   │   └── afbeeldingen/
+│   └── website/           ← alles over de website (challenges.ms-dev.nl)
+│       ├── README.md
+│       ├── https.md
+│       ├── netwerk.md
+│       ├── admin-panel.md
+│       └── configs/       ← kopieën van de website-configs (zonder wachtwoorden)
 └── configs/               ← kopieën van configuratiebestanden (zonder wachtwoorden)
     ├── prometheus/
     └── systemd/
@@ -38,7 +45,7 @@ Project_Nextline/
 
 1. Kopieer [docs/_sjabloon.md](docs/_sjabloon.md) naar de juiste map in `docs/`. Hoort het niet bij een bestaand onderdeel, maak dan een nieuwe map aan.
 2. Zet screenshots in de map `afbeeldingen/` naast het document.
-3. Zet configuratiebestanden in `configs/<programma>/`. Vervang wachtwoorden en tokens door een placeholder en geef het bestand de extensie `.example`.
+3. Zet configuratiebestanden in `configs/<programma>/` (voor de website: `docs/website/configs/`). Vervang wachtwoorden en tokens door een placeholder en geef het bestand de extensie `.example`.
 4. Voeg een regel toe aan de tabel **Inhoud** hierboven.
 
 ## Afspraken

@@ -13,6 +13,7 @@ Documentatie van ons schoolproject Nextline. Alles wat we bouwen en instellen, l
 | [Cluster1 – Back-up](docs/cluster1/backup.md) | Back-ups naar de Proxmox Backup Server van de docent | Klaar |
 | [BDRP – herstelplan](docs/bdrp/README.md) | Wat de beheerder doet bij uitval, wat er is gebouwd en wat er is gedaan | Versie 0.1 |
 | [Website](docs/website/README.md) | BreachOut-website: HTTPS, deelnemersnetwerk, admin panel en configs | Klaar |
+| [Gebruikersinstructie](docs/gebruikersinstructie/README.md) | Korte instructie (2 pagina's) voor de deelnemers: waarvoor BreachOut is, hoe je het gebruikt en wat je leert | Versie 1.1 |
 
 ## Mappenstructuur
 
@@ -30,6 +31,9 @@ Project_Nextline/
 │   │   ├── monitoring.md
 │   │   ├── backup.md
 │   │   └── afbeeldingen/
+│   ├── gebruikersinstructie/ ← korte instructie voor de deelnemers
+│   │   ├── README.md
+│   │   └── Gebruikersinstructie_BreachOut.docx
 │   └── website/           ← alles over de website (challenges.ms-dev.nl)
 │       ├── README.md
 │       ├── https.md

@@ -1,0 +1,19 @@
+- name: Private Docker registry op docker02
+  hosts: docker
+  become: true
+  tasks:
+    - name: Map voor registry-data
+      ansible.builtin.file:
+        path: /opt/registry
+        state: directory
+        mode: '0755'
+    - name: Kijk of de registry al bestaat
+      ansible.builtin.command: docker inspect challengelab-registry
+      register: reg
+      failed_when: false
+      changed_when: false
+    - name: Start de registry
+      ansible.builtin.command: >
+        docker run -d --name challengelab-registry --restart unless-stopped
+        -p 5000:5000 -v /opt/registry:/var/lib/registry registry:2
+      when: reg.rc != 0

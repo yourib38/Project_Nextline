@@ -1,0 +1,5 @@
+- name: Configureer een BreachOut-worker
+  hosts: all
+  become: true
+  roles:
+    - breachout_worker

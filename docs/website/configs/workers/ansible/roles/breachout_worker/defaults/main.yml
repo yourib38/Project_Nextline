@@ -1,0 +1,9 @@
+---
+breachout_registry: "192.168.20.31:5000"
+breachout_challenge_ids: []
+breachout_challenge_user: team
+breachout_web_pubkey: ""
+breachout_network: challenge-net
+breachout_traefik_container: challengelab-proxy
+breachout_traefik_image: traefik:v3
+breachout_traefik_port: 8081

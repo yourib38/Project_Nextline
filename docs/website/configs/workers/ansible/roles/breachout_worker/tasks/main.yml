@@ -1,0 +1,85 @@
+---
+- name: Installeer Docker en vereisten
+  ansible.builtin.apt:
+    name: [docker.io, ca-certificates, curl]
+    state: present
+    update_cache: true
+
+- name: Registry als insecure registry toestaan (intern VLAN)
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {"insecure-registries": ["{{ breachout_registry }}"]}
+    mode: '0644'
+  register: daemon_json
+
+- name: Herstart Docker na nieuwe config
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+  when: daemon_json.changed
+
+- name: Start en activeer Docker
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Maak user team aan in docker groep
+  ansible.builtin.user:
+    name: "{{ breachout_challenge_user }}"
+    groups: docker
+    append: true
+    shell: /bin/bash
+    create_home: true
+
+- name: SSH key van de webserver toelaten
+  ansible.posix.authorized_key:
+    user: "{{ breachout_challenge_user }}"
+    key: "{{ breachout_web_pubkey }}"
+  when: breachout_web_pubkey | length > 0
+
+- name: Controleer of challenge-net bestaat
+  ansible.builtin.command: docker network inspect {{ breachout_network }}
+  register: net_check
+  changed_when: false
+  failed_when: false
+
+- name: Maak challenge-net aan
+  ansible.builtin.command: docker network create {{ breachout_network }}
+  when: net_check.rc != 0
+
+- name: Controleer of Traefik bestaat
+  ansible.builtin.command: docker inspect {{ breachout_traefik_container }}
+  register: traefik_check
+  changed_when: false
+  failed_when: false
+
+- name: Start Traefik reverse proxy
+  ansible.builtin.shell: |
+    docker run -d \
+      --name {{ breachout_traefik_container }} \
+      --restart unless-stopped \
+      --network {{ breachout_network }} \
+      -p {{ breachout_traefik_port }}:80 \
+      -v /var/run/docker.sock:/var/run/docker.sock:ro \
+      {{ breachout_traefik_image }} \
+      --entrypoints.web.address=:80 \
+      --providers.docker=true \
+      --providers.docker.exposedbydefault=false \
+      --providers.docker.network={{ breachout_network }}
+  args:
+    executable: /bin/bash
+  when: traefik_check.rc != 0
+
+- name: Haal de challenge-images uit de registry
+  ansible.builtin.shell: |
+    docker image inspect challengelab/{{ item }}:1.0 >/dev/null 2>&1 && echo bestaat || {
+      docker pull {{ breachout_registry }}/challengelab/{{ item }}:1.0 &&
+      docker tag {{ breachout_registry }}/challengelab/{{ item }}:1.0 challengelab/{{ item }}:1.0 &&
+      echo opgehaald; }
+  args:
+    executable: /bin/bash
+  loop: "{{ breachout_challenge_ids }}"
+  register: pulled
+  changed_when: "'opgehaald' in pulled.stdout"

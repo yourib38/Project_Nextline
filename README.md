@@ -11,36 +11,41 @@ Documentatie van ons schoolproject Nextline. Alles wat we bouwen en instellen, l
 | [Cluster1 – Monitoring](docs/cluster1/monitoring.md) | Prometheus + Grafana in `Ubuntu-server` | Klaar |
 | Cluster1 – High Availability (HA) | HA-groepen, load balancing en live migration | Klaar |
 | [Cluster1 – Back-up](docs/cluster1/backup.md) | Back-ups naar de Proxmox Backup Server van de docent | Klaar |
+| [Cluster1 – Automatisering](docs/cluster1/automatisering.md) | Ansible en Terraform op CT101: workers per sessie aanmaken en verwijderen | Klaar |
 | [BDRP – herstelplan](docs/bdrp/README.md) | Wat de beheerder doet bij uitval, wat er is gebouwd en wat er is gedaan | Versie 0.1 |
-| [Website](docs/website/README.md) | BreachOut-website: HTTPS, deelnemersnetwerk, admin panel en configs | Klaar |
+| [Website](docs/website/README.md) | BreachOut-website: HTTPS, deelnemersnetwerk, admin panel, workers per sessie en configs | Klaar |
 | [Gebruikersinstructie](docs/gebruikersinstructie/README.md) | Korte instructie (2 pagina's) voor de deelnemers: waarvoor BreachOut is, hoe je het gebruikt en wat je leert | Versie 1.1 |
 
 ## Mappenstructuur
 
 ```
 Project_Nextline/
-├── README.md              ← dit bestand, de inhoudsopgave
+├── README.md ← dit bestand, de inhoudsopgave
 ├── docs/
-│   ├── _sjabloon.md       ← sjabloon voor nieuwe documentatie
-│   ├── bdrp/              ← herstelplan (BDRP) voor de beheerder
+│   ├── _sjabloon.md ← sjabloon voor nieuwe documentatie
+│   ├── bdrp/ ← herstelplan (BDRP) voor de beheerder
 │   │   ├── README.md
 │   │   └── BDRP_BreachOut_Cluster1.docx
-│   ├── cluster1/          ← alles over het Proxmox-cluster
+│   ├── cluster1/ ← alles over het Proxmox-cluster
 │   │   ├── overzicht.md
 │   │   ├── ceph.md
 │   │   ├── monitoring.md
 │   │   ├── backup.md
+│   │   ├── automatisering.md
 │   │   └── afbeeldingen/
 │   ├── gebruikersinstructie/ ← korte instructie voor de deelnemers
 │   │   ├── README.md
 │   │   └── Gebruikersinstructie_BreachOut.docx
-│   └── website/           ← alles over de website (challenges.ms-dev.nl)
+│   └── website/ ← alles over de website (challenges.ms-dev.nl)
 │       ├── README.md
 │       ├── https.md
 │       ├── netwerk.md
+│       ├── netwerk-workers.md
+│       ├── workers.md
 │       ├── admin-panel.md
-│       └── configs/       ← kopieën van de website-configs (zonder wachtwoorden)
-└── configs/               ← kopieën van configuratiebestanden (zonder wachtwoorden)
+│       ├── breachout-platform/
+│       └── configs/ ← kopieën van de website-configs (zonder wachtwoorden)
+└── configs/ ← kopieën van configuratiebestanden (zonder wachtwoorden)
     ├── prometheus/
     └── systemd/
 ```

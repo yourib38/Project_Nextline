@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Het geheime bericht</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #08100c;
+            color: #e9f2ed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 950px;
+            max-width: 94%;
+            margin: 40px auto 70px;
+        }
+
+        h1 {
+            color: #35f29a;
+        }
+
+        .panel {
+            background: #0e1712;
+            border: 1px solid #20392b;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .cipher {
+            background: #07100b;
+            border: 1px solid #244331;
+            border-radius: 10px;
+            padding: 28px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 26px;
+            letter-spacing: 4px;
+            color: #35f29a;
+            margin: 20px 0;
+        }
+
+        .hint {
+            background: #0a120e;
+            border-left: 3px solid #35f29a;
+            padding: 16px;
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #223128;
+            text-align: center;
+        }
+
+        th {
+            color: #35f29a;
+        }
+
+        .muted {
+            color: #839087;
+        }
+
+        input {
+            width: 300px;
+            max-width: 100%;
+            padding: 12px;
+            background: #07100b;
+            border: 1px solid #355443;
+            color: white;
+            border-radius: 7px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #35f29a;
+            color: #04100a;
+            border: 0;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 6px;
+        }
+
+        button:hover {
+            background: #65ffb4;
+        }
+
+        #result {
+            margin-top: 16px;
+            font-weight: bold;
+        }
+
+        .success { color: #35f29a; }
+        .error { color: #ff7d7d; }
+
+        @media (max-width: 650px) {
+            input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Het geheime bericht</h1>
+
+    <div class="panel">
+        <h2>Situatie</h2>
+
+        <p>
+            Tijdens een controle is een versleuteld bericht gevonden.
+        </p>
+
+        <p>
+            Waarschijnlijk is een eenvoudige Caesar-versleuteling gebruikt.
+            Bij deze techniek wordt iedere letter een vast aantal plaatsen
+            in het alfabet verschoven.
+        </p>
+    </div>
+
+
+    <div class="panel">
+        <h2>Versleuteld bericht</h2>
+
+        <div class="cipher">
+            KHW ZDFKWZRRUG LV EODXZ
+        </div>
+
+        <div class="hint">
+            <strong>Hint:</strong><br>
+            De afzender heeft ergens genoteerd:
+
+            <br><br>
+
+            <strong>"Drie stappen vooruit om te verbergen, drie terug om te lezen."</strong>
+        </div>
+    </div>
+
+
+    <div class="panel">
+        <h2>Voorbeeld</h2>
+
+        <p>
+            Bij een Caesar-shift van 3:
+        </p>
+
+        <table>
+            <tr>
+                <th>Versleuteld</th>
+                <td>D</td>
+                <td>E</td>
+                <td>F</td>
+                <td>G</td>
+                <td>H</td>
+                <td>I</td>
+            </tr>
+
+            <tr>
+                <th>Origineel</th>
+                <td>A</td>
+                <td>B</td>
+                <td>C</td>
+                <td>D</td>
+                <td>E</td>
+                <td>F</td>
+            </tr>
+        </table>
+
+        <p class="muted">
+            Om te ontcijferen ga je dus drie letters terug.
+        </p>
+    </div>
+
+
+    <div class="panel">
+        <h2>Opdracht</h2>
+
+        <p>
+            Ontcijfer het bericht.
+        </p>
+
+        <p>
+            Welk wachtwoord wordt in het bericht genoemd?
+        </p>
+
+        <p class="muted">
+            Vul alleen het wachtwoord in.
+        </p>
+
+        <input
+            id="answer"
+            placeholder="wachtwoord"
+            autocomplete="off"
+        >
+
+        <button onclick="checkAnswer()">
+            Controleer
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+</div>
+
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const sessionId = params.get("session");
+
+let answerSubmitting = false;
+
+
+async function waitForChallenge(url) {
+    for (let i = 0; i < 20; i++) {
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                cache: "no-store"
+            });
+
+            if (response.ok) {
+                window.location.href = url;
+                return;
+            }
+        } catch (error) {}
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    window.location.href = url;
+}
+
+
+async function checkAnswer() {
+    if (answerSubmitting) {
+        return;
+    }
+
+    answerSubmitting = true;
+    const answer = document
+        .getElementById("answer")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const result = document.getElementById("result");
+
+    if (!sessionId) {
+        result.className = "error";
+        result.textContent =
+            "Geen geldige ChallengeLab-sessie gevonden.";
+        return;
+    }
+
+    if (!answer) {
+        answerSubmitting = false;
+
+        result.className = "error";
+        result.textContent =
+            "Vul eerst een antwoord in.";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/api/session/" +
+            sessionId +
+            "/answer",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    answer: answer
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                "Antwoord kon niet gecontroleerd worden."
+            );
+        }
+
+        if (!data.correct) {
+            answerSubmitting = false;
+
+            result.className = "error";
+            result.textContent =
+                "✗ Niet correct. Probeer iedere letter drie plaatsen terug te schuiven.";
+            return;
+        }
+
+        if (data.completed) {
+            result.className = "success";
+            result.textContent =
+                "✓ Correct! Alle beschikbare challenges zijn voltooid.";
+
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 1500);
+
+            return;
+        }
+
+        result.className = "success";
+        result.textContent =
+            "✓ Correct! Volgende challenge wordt gestart...";
+
+        waitForChallenge(data.url);
+
+    } catch (error) {
+        answerSubmitting = false;
+
+        result.className = "error";
+        result.textContent =
+            "Fout: " + error.message;
+    }
+}
+
+
+document
+    .getElementById("answer")
+    .addEventListener(
+        "keydown",
+        function(event) {
+            if (event.key === "Enter") {
+                checkAnswer();
+            }
+        }
+    );
+</script>
+
+<script src="/hint-widget.js"></script>
+</body>
+</html>

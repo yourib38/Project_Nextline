@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De ontbrekende minuten</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #08100c;
+            color: #e9f2ed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 1100px;
+            max-width: 94%;
+            margin: 40px auto 70px;
+        }
+
+        h1 { color: #35f29a; }
+
+        .panel {
+            background: #0e1712;
+            border: 1px solid #20392b;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .log {
+            background: #07100b;
+            border: 1px solid #1c3024;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+            font-family: monospace;
+            line-height: 1.6;
+        }
+
+        .gap {
+            border: 1px dashed #68756d;
+            color: #9ba79f;
+            text-align: center;
+            padding: 18px;
+            margin: 12px 0;
+            border-radius: 8px;
+        }
+
+        .muted {
+            color: #839087;
+        }
+
+        select {
+            width: 340px;
+            max-width: 100%;
+            padding: 12px;
+            background: #07100b;
+            color: white;
+            border: 1px solid #355443;
+            border-radius: 7px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #35f29a;
+            color: #04100a;
+            border: 0;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 6px;
+        }
+
+        #result {
+            margin-top: 16px;
+            font-weight: bold;
+        }
+
+        .success { color: #35f29a; }
+        .error { color: #ff7d7d; }
+
+        @media (max-width: 650px) {
+            select {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>De ontbrekende minuten</h1>
+
+    <div class="panel">
+        <h2>Situatie</h2>
+
+        <p>
+            Op een interne fileserver ontbreekt een stuk logging tussen
+            <strong>14:32 en 14:38</strong>.
+        </p>
+
+        <p>
+            In die periode is een vertrouwelijk bestand verplaatst.
+            Onderzoek de beschikbare logs en bepaal welke gebruiker
+            waarschijnlijk actief was tijdens het ontbrekende tijdvak.
+        </p>
+    </div>
+
+    <div class="grid">
+
+        <div class="panel">
+            <h2>Loginlog</h2>
+
+            <div class="log">
+                14:21:03 LOGIN SUCCESS<br>
+                user=ljansen<br>
+                source=10.10.10.21
+            </div>
+
+            <div class="log">
+                14:29:44 LOGIN SUCCESS<br>
+                user=mvandermeer<br>
+                source=10.10.10.37
+            </div>
+
+            <div class="log">
+                14:41:12 LOGOUT<br>
+                user=mvandermeer
+            </div>
+
+            <div class="log">
+                14:44:08 LOGIN SUCCESS<br>
+                user=esmit<br>
+                source=10.10.10.18
+            </div>
+        </div>
+
+
+        <div class="panel">
+            <h2>Bestandslog</h2>
+
+            <div class="log">
+                14:27:55 OPEN<br>
+                file=/finance/budget.xlsx<br>
+                user=ljansen
+            </div>
+
+            <div class="gap">
+                Logging ontbreekt van 14:32 t/m 14:38
+            </div>
+
+            <div class="log">
+                14:39:07 CLOSE<br>
+                file=/directie/strategie.docx<br>
+                user=mvandermeer
+            </div>
+        </div>
+
+
+        <div class="panel">
+            <h2>Netwerklog</h2>
+
+            <div class="log">
+                14:30:11<br>
+                10.10.10.37 → FILESERVER<br>
+                SMB session established
+            </div>
+
+            <div class="log">
+                14:36:42<br>
+                10.10.10.37 → FILESERVER<br>
+                SMB traffic
+            </div>
+
+            <div class="log">
+                14:40:02<br>
+                10.10.10.37 → FILESERVER<br>
+                SMB session active
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+        <h2>Opdracht</h2>
+
+        <p>
+            Welke gebruiker was het meest waarschijnlijk actief
+            tijdens de ontbrekende minuten?
+        </p>
+
+        <p class="muted">
+            Combineer de login-, bestands- en netwerklogs.
+        </p>
+
+        <select id="answer">
+            <option value="">Kies een gebruiker</option>
+            <option value="ljansen">ljansen</option>
+            <option value="mvandermeer">mvandermeer</option>
+            <option value="esmit">esmit</option>
+        </select>
+
+        <button onclick="checkAnswer()">
+            Controleer
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+</div>
+
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const sessionId = params.get("session");
+
+let answerSubmitting = false;
+
+async function waitForChallenge(url) {
+    for (let i = 0; i < 20; i++) {
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                cache: "no-store"
+            });
+
+            if (response.ok) {
+                window.location.href = url;
+                return;
+            }
+        } catch (error) {}
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    window.location.href = url;
+}
+
+
+async function checkAnswer() {
+    if (answerSubmitting) {
+        return;
+    }
+
+    answerSubmitting = true;
+    const answer =
+        document.getElementById("answer").value;
+
+    const result =
+        document.getElementById("result");
+
+    if (!sessionId) {
+        result.className = "error";
+        result.textContent =
+            "Geen geldige ChallengeLab-sessie gevonden.";
+        return;
+    }
+
+    if (!answer) {
+        answerSubmitting = false;
+
+        result.className = "error";
+        result.textContent =
+            "Kies eerst een gebruiker.";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/api/session/" + sessionId + "/answer",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    answer: answer
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                "Antwoord kon niet gecontroleerd worden."
+            );
+        }
+
+        if (!data.correct) {
+            answerSubmitting = false;
+
+            result.className = "error";
+            result.textContent =
+                "✗ Niet correct. Let vooral op het IP-adres dat tijdens het loggat actief blijft.";
+            return;
+        }
+
+        if (data.completed) {
+            result.className = "success";
+            result.textContent =
+                "✓ Correct! Alle beschikbare challenges zijn voltooid.";
+
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 1500);
+
+            return;
+        }
+
+        result.className = "success";
+        result.textContent =
+            "✓ Correct! Volgende challenge wordt gestart...";
+
+        waitForChallenge(data.url);
+
+    } catch (error) {
+        answerSubmitting = false;
+
+        result.className = "error";
+        result.textContent =
+            "Fout: " + error.message;
+    }
+}
+</script>
+
+<script src="/hint-widget.js"></script>
+</body>
+</html>

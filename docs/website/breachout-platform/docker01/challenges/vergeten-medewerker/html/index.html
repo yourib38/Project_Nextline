@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Access Portal</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #08100c;
+            color: #e9f2ed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 1100px;
+            max-width: 94%;
+            margin: 40px auto 70px;
+        }
+
+        h1 {
+            color: #35f29a;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .panel {
+            background: #0e1712;
+            border: 1px solid #20392b;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #223128;
+        }
+
+        th {
+            color: #35f29a;
+        }
+
+        .muted {
+            color: #839087;
+        }
+
+        .log {
+            font-family: monospace;
+            background: #07100b;
+            border: 1px solid #1a3023;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            color: #f7c86a;
+        }
+
+        input {
+            padding: 12px;
+            width: 280px;
+            background: #07100b;
+            border: 1px solid #355443;
+            color: white;
+            border-radius: 7px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #35f29a;
+            color: #04100a;
+            border: 0;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #65ffb4;
+        }
+
+        #result {
+            margin-top: 16px;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #35f29a;
+        }
+
+        .error {
+            color: #ff7d7d;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Internal Access Portal</h1>
+
+    <div class="panel">
+        <h2>Situatie</h2>
+
+        <p>
+            Tijdens een periodieke toegangscontrole is mogelijk
+            ongewenste activiteit gevonden.
+        </p>
+
+        <p>
+            Onderzoek de accountgegevens, HR-mutaties en beveiligingslogs.
+            Bepaal welk account niet meer actief hoort te zijn,
+            maar recent nog is gebruikt.
+        </p>
+    </div>
+
+
+    <div class="panel">
+        <h2>Gebruikersaccounts</h2>
+
+        <table>
+            <tr>
+                <th>Account</th>
+                <th>Naam</th>
+                <th>Afdeling</th>
+                <th>Status</th>
+            </tr>
+
+            <tr>
+                <td>ljansen</td>
+                <td>Lisa Jansen</td>
+                <td>Finance</td>
+                <td>Actief</td>
+            </tr>
+
+            <tr>
+                <td>mdeboer</td>
+                <td>Mark de Boer</td>
+                <td>IT</td>
+                <td>Actief</td>
+            </tr>
+
+            <tr>
+                <td>speters</td>
+                <td>Sven Peters</td>
+                <td>Support</td>
+                <td>Actief</td>
+            </tr>
+
+            <tr>
+                <td>tvos</td>
+                <td>Terry Vos</td>
+                <td>Sales</td>
+                <td>Actief</td>
+            </tr>
+
+            <tr>
+                <td>esmit</td>
+                <td>Emma Smit</td>
+                <td>HR</td>
+                <td>Actief</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <div class="grid">
+
+        <div class="panel">
+            <h2>HR-mutaties</h2>
+
+            <p>
+                <strong>Lisa Jansen</strong><br>
+                Finance<br>
+                Status: In dienst
+            </p>
+
+            <hr>
+
+            <p>
+                <strong>Terry Vos</strong><br>
+                Sales<br>
+                Status:
+                <span class="warning">Uit dienst</span><br>
+                Uit dienst sinds: 14-09-2026
+            </p>
+
+            <hr>
+
+            <p>
+                <strong>Emma Smit</strong><br>
+                HR<br>
+                Status: In dienst
+            </p>
+
+            <p class="muted">
+                Alleen recente wijzigingen worden hier weergegeven.
+            </p>
+        </div>
+
+
+        <div class="panel">
+            <h2>Security log</h2>
+
+            <div class="log">
+                01-10-2026 09:12<br>
+                SUCCESS LOGIN<br>
+                account: ljansen<br>
+                source: 10.20.10.14
+            </div>
+
+            <div class="log">
+                01-10-2026 13:42<br>
+                SUCCESS LOGIN<br>
+                account: esmit<br>
+                source: 10.20.50.21
+            </div>
+
+            <div class="log">
+                02-10-2026 08:14<br>
+                SUCCESS LOGIN<br>
+                account: tvos<br>
+                source: 10.20.30.44
+            </div>
+
+            <div class="log">
+                02-10-2026 08:22<br>
+                SUCCESS LOGIN<br>
+                account: mdeboer<br>
+                source: 10.20.20.11
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+        <h2>Opdracht</h2>
+
+        <p>
+            Welk account vormt het beveiligingsrisico?
+        </p>
+
+        <p class="muted">
+            Vul alleen de gebruikersnaam in.
+        </p>
+
+        <input
+            id="answer"
+            placeholder="bijvoorbeeld: ljansen"
+            autocomplete="off"
+        >
+
+        <button onclick="checkAnswer()">
+            Controleer
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+</div>
+
+<script>
+const params = new URLSearchParams(
+    window.location.search
+);
+
+const sessionId = params.get("session");
+
+let answerSubmitting = false;
+
+
+async function checkAnswer() {
+    if (answerSubmitting) {
+        return;
+    }
+
+    answerSubmitting = true;
+    const input = document.getElementById("answer");
+
+    const answer = input.value.trim();
+
+    const result = document.getElementById("result");
+
+
+    if (!sessionId) {
+        result.className = "error";
+        result.textContent =
+            "Geen geldige ChallengeLab-sessie gevonden.";
+
+        return;
+    }
+
+
+    if (!answer) {
+        answerSubmitting = false;
+
+        result.className = "error";
+        result.textContent =
+            "Vul eerst een antwoord in.";
+
+        return;
+    }
+
+
+    try {
+        const response = await fetch(
+            "/api/session/" +
+            sessionId +
+            "/answer",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    answer: answer
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                "Antwoord kon niet gecontroleerd worden."
+            );
+        }
+
+
+        if (!data.correct) {
+            answerSubmitting = false;
+
+            result.className = "error";
+
+            result.textContent =
+                "✗ Niet correct. Bekijk de gegevens nog eens.";
+
+            return;
+        }
+
+
+        if (data.completed) {
+            result.className = "success";
+
+            result.textContent =
+                "✓ Correct! Je hebt alle challenges voltooid.";
+
+            return;
+        }
+
+
+        result.className = "success";
+
+        result.textContent =
+            "✓ Correct! Volgende challenge wordt geladen...";
+
+
+        async function waitForChallenge(url) {
+	    for (let i = 0; i < 20; i++) {
+        	try {
+            		const response = await fetch(url, {
+                		method: "GET",
+                		cache: "no-store"
+            		});
+
+            		if (response.ok) {
+                		window.location.href = url;
+        	  		return;
+    			}
+        	} catch (error) {
+            		// challenge is nog niet klaar
+        	}
+
+          	await new Promise(resolve => setTimeout(resolve, 500));
+    		}
+
+    		window.location.href = url;
+	}
+
+	waitForChallenge(data.url);
+
+    } catch (error) {
+        answerSubmitting = false;
+
+        result.className = "error";
+        result.textContent =
+            "Fout: " + error.message;
+    }
+}
+
+
+document
+    .getElementById("answer")
+    .addEventListener(
+        "keydown",
+        function(event) {
+            if (event.key === "Enter") {
+                checkAnswer();
+            }
+        }
+    );
+</script>
+
+<script src="/hint-widget.js"></script>
+</body>
+</html>
